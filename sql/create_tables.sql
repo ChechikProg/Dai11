@@ -63,10 +63,10 @@ CREATE INDEX idx_usuarios_email ON usuarios (email);
 INSERT INTO usuarios (nombre_usuario, nombre_completo, email, password, biografia)
 VALUES
 ('gato_programador', 'Juan Perez', 'juan@test.com',
- '$2b$10$3euPcmQFCiblsZeEu5s7p.9OVHgeKe8sYb6vTXCzs.FnaWaX7d7hK', -- hash de "123456"
+ '$2a$10$6Ftj3kbLmbhJTgZEkSqstOo9op5uTl6zdAcScKAwo8NtXbBRzUy2O', -- hash de "123456"
  'Amante de los gatos y el código.'),
 ('michi_dev', 'Maria Lopez', 'maria@test.com',
- '$2b$10$3euPcmQFCiblsZeEu5s7p.9OVHgeKe8sYb6vTXCzs.FnaWaX7d7hK', -- hash de "123456"
+ '$2a$10$6Ftj3kbLmbhJTgZEkSqstOo9op5uTl6zdAcScKAwo8NtXbBRzUy2O', -- hash de "123456"
  'Frontend por el día, gatos por la noche.');
 
 INSERT INTO publicaciones (usuario_id, url_imagen, descripcion, likes)

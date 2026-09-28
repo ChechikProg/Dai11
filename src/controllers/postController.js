@@ -46,4 +46,35 @@ async function crearPublicacion(req, res) {
   }
 }
 
-module.exports = { obtenerFeed, crearPublicacion };
+/**
+ * DELETE /api/publicaciones/:id (RUTA PROTEGIDA)
+ * Elimina una publicación, solo si pertenece al usuario autenticado.
+ */
+async function eliminarPublicacion(req, res) {
+  try {
+    const usuarioId = req.user.id;
+    const publicacionId = Number(req.params.id);
+
+    if (!Number.isInteger(publicacionId)) {
+      return res.status(400).json({ error: 'El id de la publicación debe ser un número entero.' });
+    }
+
+    const publicacion = await postService.buscarPorId(publicacionId);
+    if (!publicacion) {
+      return res.status(404).json({ error: 'Publicación no encontrada.' });
+    }
+
+    if (publicacion.usuario_id !== usuarioId) {
+      return res.status(403).json({ error: 'No podés eliminar una publicación que no te pertenece.' });
+    }
+
+    await postService.eliminarPorId(publicacionId);
+
+    return res.status(200).json({ mensaje: 'Publicación eliminada correctamente.' });
+  } catch (error) {
+    console.error('Error en eliminarPublicacion:', error);
+    return res.status(500).json({ error: 'Error interno del servidor al eliminar la publicación.' });
+  }
+}
+
+module.exports = { obtenerFeed, crearPublicacion, eliminarPublicacion };
