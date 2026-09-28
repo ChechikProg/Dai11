@@ -34,7 +34,24 @@ async function crearPublicacion({ usuarioId, urlImagen, descripcion }) {
   return rows[0];
 }
 
+/**
+ * Busca una publicación por id (se usa para chequear existencia y dueño antes de borrar).
+ */
+async function buscarPorId(id) {
+  const { rows } = await pool.query('SELECT * FROM publicaciones WHERE id = $1', [id]);
+  return rows[0];
+}
+
+/**
+ * Elimina una publicación por id.
+ */
+async function eliminarPorId(id) {
+  await pool.query('DELETE FROM publicaciones WHERE id = $1', [id]);
+}
+
 module.exports = {
   obtenerFeedGlobal,
   crearPublicacion,
+  buscarPorId,
+  eliminarPorId,
 };

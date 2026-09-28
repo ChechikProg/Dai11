@@ -2,11 +2,25 @@
   "swagger": "2.0",
   "info": {
     "title": "API Clon de Instagram",
-    "description": "API REST para un clon de Instagram",
+    "description": "API REST para un clon de Instagram. Permite registrarse, iniciar sesión, ver y editar el perfil propio, y publicar/ver/eliminar publicaciones.",
     "version": "1.0.0"
   },
   "host": "localhost:3000",
   "basePath": "/",
+  "tags": [
+    {
+      "name": "Autenticación",
+      "description": "Registro e inicio de sesión"
+    },
+    {
+      "name": "Usuarios",
+      "description": "Perfil del usuario autenticado"
+    },
+    {
+      "name": "Publicaciones",
+      "description": "Feed y publicaciones"
+    }
+  ],
   "schemes": [
     "http"
   ],
@@ -23,27 +37,18 @@
     },
     "/api/auth/register": {
       "post": {
-        "description": "",
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Registrar un nuevo usuario",
+        "description": "Crea una cuenta nueva. Valida que el email y el nombre de usuario no estén ya registrados, y guarda la contraseña encriptada con bcrypt.",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "nombre_usuario": {
-                  "example": "any"
-                },
-                "nombre_completo": {
-                  "example": "any"
-                },
-                "email": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                }
-              }
+              "$ref": "#/definitions/RegistroUsuario"
             }
           }
         ],
@@ -62,21 +67,18 @@
     },
     "/api/auth/login": {
       "post": {
-        "description": "",
+        "tags": [
+          "Autenticación"
+        ],
+        "summary": "Iniciar sesión",
+        "description": "Valida email y contraseña. Si son correctos, devuelve un token JWT que debe enviarse en el header Authorization de las rutas protegidas, como \"Bearer <token>\".",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                }
-              }
+              "$ref": "#/definitions/LoginUsuario"
             }
           }
         ],
@@ -98,7 +100,11 @@
     },
     "/api/usuarios/perfil": {
       "get": {
-        "description": "",
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Obtener mi perfil",
+        "description": "Devuelve los datos del perfil del usuario autenticado (según el token) junto con sus publicaciones.",
         "parameters": [
           {
             "name": "authorization",
@@ -122,7 +128,11 @@
         }
       },
       "put": {
-        "description": "",
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Editar mi perfil",
+        "description": "Actualiza nombre completo, biografía y/o foto de perfil del usuario autenticado. Los campos que no se envíen mantienen su valor actual.",
         "parameters": [
           {
             "name": "authorization",
@@ -132,19 +142,9 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "nombre_completo": {
-                  "example": "any"
-                },
-                "biografia": {
-                  "example": "any"
-                },
-                "foto_perfil": {
-                  "example": "any"
-                }
-              }
+              "$ref": "#/definitions/ActualizarPerfil"
             }
           }
         ],
@@ -163,7 +163,11 @@
     },
     "/api/publicaciones/": {
       "get": {
-        "description": "",
+        "tags": [
+          "Publicaciones"
+        ],
+        "summary": "Obtener el feed",
+        "description": "Devuelve todas las publicaciones existentes, ordenadas de la más reciente a la más antigua, incluyendo el nombre de usuario y la foto de perfil del autor de cada una.",
         "responses": {
           "200": {
             "description": "OK"
@@ -174,7 +178,11 @@
         }
       },
       "post": {
-        "description": "",
+        "tags": [
+          "Publicaciones"
+        ],
+        "summary": "Crear una publicación",
+        "description": "Crea una nueva publicación asociada al usuario autenticado. El autor se toma del token, no del body.",
         "parameters": [
           {
             "name": "authorization",
@@ -184,16 +192,9 @@
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
-              "type": "object",
-              "properties": {
-                "url_imagen": {
-                  "example": "any"
-                },
-                "descripcion": {
-                  "example": "any"
-                }
-              }
+              "$ref": "#/definitions/NuevaPublicacion"
             }
           }
         ],
@@ -210,6 +211,177 @@
           "500": {
             "description": "Internal Server Error"
           }
+        }
+      }
+    },
+    "/api/publicaciones/{id}": {
+      "delete": {
+        "tags": [
+          "Publicaciones"
+        ],
+        "summary": "Eliminar una publicación propia",
+        "description": "Elimina una publicación por id. Solo puede borrarla el usuario dueño de esa publicación.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "Id de la publicación a eliminar"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Usuario": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "nombre_usuario": {
+          "type": "string",
+          "example": "gato_programador"
+        },
+        "nombre_completo": {
+          "type": "string",
+          "example": "Juan Perez"
+        },
+        "email": {
+          "type": "string",
+          "example": "juan@test.com"
+        },
+        "foto_perfil": {
+          "type": "string",
+          "example": "https://api.dicebear.com/7.x/avataaars/svg?seed=default"
+        },
+        "biografia": {
+          "type": "string",
+          "example": "Amante de los gatos y el código."
+        },
+        "fecha_creacion": {
+          "type": "string",
+          "example": "2026-09-18T12:05:47.786Z"
+        }
+      }
+    },
+    "RegistroUsuario": {
+      "type": "object",
+      "properties": {
+        "nombre_usuario": {
+          "type": "string",
+          "example": "gato_programador"
+        },
+        "nombre_completo": {
+          "type": "string",
+          "example": "Juan Perez"
+        },
+        "email": {
+          "type": "string",
+          "example": "juan@test.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "123456"
+        }
+      }
+    },
+    "LoginUsuario": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "example": "juan@test.com"
+        },
+        "password": {
+          "type": "string",
+          "example": "123456"
+        }
+      }
+    },
+    "ActualizarPerfil": {
+      "type": "object",
+      "properties": {
+        "nombre_completo": {
+          "type": "string",
+          "example": "Juan Perez"
+        },
+        "biografia": {
+          "type": "string",
+          "example": "Nueva biografía"
+        },
+        "foto_perfil": {
+          "type": "string",
+          "example": "https://api.dicebear.com/7.x/avataaars/svg?seed=nuevo"
+        }
+      }
+    },
+    "Publicacion": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number",
+          "example": 1
+        },
+        "usuario_id": {
+          "type": "number",
+          "example": 1
+        },
+        "url_imagen": {
+          "type": "string",
+          "example": "https://cataas.com/cat"
+        },
+        "descripcion": {
+          "type": "string",
+          "example": "Mi gato durmiendo la siesta"
+        },
+        "likes": {
+          "type": "number",
+          "example": 5
+        },
+        "fecha_creacion": {
+          "type": "string",
+          "example": "2026-09-18T12:05:47.786Z"
+        }
+      }
+    },
+    "NuevaPublicacion": {
+      "type": "object",
+      "properties": {
+        "url_imagen": {
+          "type": "string",
+          "example": "https://cataas.com/cat"
+        },
+        "descripcion": {
+          "type": "string",
+          "example": "Mi gato durmiendo la siesta"
         }
       }
     }
